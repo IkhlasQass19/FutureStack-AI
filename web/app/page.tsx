@@ -1,24 +1,32 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  Activity,
   Boxes,
   Check,
+  ChevronRight,
   Clock3,
-  Download,
+  FlaskConical,
   GitBranch,
-  Layers3,
+  Network,
+  NotebookText,
+  PanelRightClose,
+  PanelRightOpen,
   Pencil,
   Save,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
+  X,
 } from "lucide-react";
+import { Impact, ComponentDetail, Layers } from "../components/AnalysisPanel";
+import BriefDialog from "../components/BriefDialog";
 import Topology from "../components/Topology";
 import Inspector from "../components/Inspector";
 import {
   Timeline,
   ScenarioForm,
   defaultScenario,
+  scenarioNames,
   type Point,
 } from "../components/Experiment";
 import { Review, type Run } from "../components/Review";
@@ -28,7 +36,13 @@ import { api, type Architecture, type Scenario, type Style } from "./types";
 const starter = sample as Architecture;
 const initialBrief =
   "Reserve concert tickets and issue confirmations. Keep checkout p95 below 200 ms.";
-const tabs = ["Time machine", "Design review", "Versions"] as const;
+const tabs = [
+  "Architecture graph",
+  "Impact analysis",
+  "Time machine",
+  "Design review",
+  "Versions",
+] as const;
 type Tab = (typeof tabs)[number];
 type Recent = { id: string; created: number; head: number; status: string };
 type Pair = {
@@ -61,11 +75,45 @@ export default function Lab() {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [status, setStatus] = useState(""),
-    [tab, setTab] = useState<Tab>("Time machine"),
+    [tab, setTab] = useState<Tab>("Architecture graph"),
     [edit, setEdit] = useState(false),
     [showBrief, setShowBrief] = useState(false),
     [provider, setProvider] = useState("Connecting");
+  const [showSpecs, setShowSpecs] = useState(true),
+    [showProtocols, setShowProtocols] = useState(true),
+    [showMap, setShowMap] = useState(true);
+  const [panel, setPanel] = useState<"impact" | "component">("impact"),
+    [panelOpen, setPanelOpen] = useState(true);
   const result = points[index]?.result;
+  const board = tab !== "Design review" && tab !== "Versions";
+  const part =
+    arch.components.find((c) => c.id === selected) ?? arch.components[0];
+  function go(t: Tab) {
+    setTab(t);
+    if (t === "Impact analysis") {
+      setEdit(false);
+      setPanel("impact");
+      setPanelOpen(true);
+    }
+    const anchor =
+      t === "Time machine"
+        ? "experiments"
+        : t === "Impact analysis"
+          ? "analysis"
+          : "app-top";
+    requestAnimationFrame(() =>
+      document.getElementById(anchor)?.scrollIntoView({ block: "start" }),
+    );
+  }
+  function toggleEdit() {
+    setEdit(!edit);
+    setPanelOpen(true);
+    setPanel("component");
+    if (!edit && window.innerWidth < 1000)
+      requestAnimationFrame(() =>
+        document.getElementById("analysis")?.scrollIntoView({ block: "start" }),
+      );
+  }
   function invalidate() {
     setPoints([]);
     setPair(undefined);
@@ -96,6 +144,8 @@ export default function Lab() {
       : r.state.architecture;
     setRun(r);
     setVersion(n);
+    setEdit(false);
+    setPanel("impact");
     setDirty(false);
     setBrief(r.state.brief.text);
     setStyle(r.state.brief.style);
@@ -180,7 +230,7 @@ export default function Lab() {
     }
     setRecent(await api<Recent[]>("runs"));
     setStatus("Version saved.");
-    setTab("Time machine");
+    go("Architecture graph");
   }
   async function experiment() {
     const data = await api<Point[]>("timeline", {
@@ -209,223 +259,483 @@ export default function Lab() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const canEdit = !run || run.status === "approved";
+
+  const versionLabel = dirty
+    ? "Unsaved edits"
+    : version
+      ? "Saved · v" + version
+      : run?.status === "awaiting_approval"
+        ? "Awaiting approval"
+        : "Sample workspace";
+  const displayOptions = [
+    { label: "Specifications", checked: showSpecs, set: setShowSpecs },
+    { label: "Protocol labels", checked: showProtocols, set: setShowProtocols },
+    { label: "Minimap", checked: showMap, set: setShowMap },
+  ];
+  const navIcons = [Network, ShieldCheck, Clock3, NotebookText, GitBranch];
   return (
-    <main>
-      <header>
-        <div className="wrap topbar">
-          <div className="brand">
-            <span className="brandmark">
-              <Boxes size={21} />
-            </span>{" "}
-            FutureStack <em>AI</em>
-          </div>
-          <span className="connection">
-            <i /> {provider}
+    <main id="app-top">
+      <header className="topbar">
+        <div className="brand">
+          <span className="brandmark">
+            <Boxes size={29} strokeWidth={1.65} />
           </span>
+          FutureStack<span className="brand-ai">AI</span>
+        </div>
+        <div className="crumb">
+          <span>Workspace</span>
+          <ChevronRight size={13} />
+          <button onClick={() => go("Versions")} disabled={busy}>
+            {arch.name}
+          </button>
+        </div>
+        <div className="top-actions">
+          <span className="engine">
+            <i />
+            {provider}
+          </span>
+          <button
+            className="primary"
+            disabled={busy}
+            onClick={() => {
+              setShowBrief(true);
+              setError("");
+            }}
+          >
+            <Sparkles size={15} />
+            Design from a brief
+          </button>
         </div>
       </header>
+      {showBrief && (
+        <BriefDialog
+          brief={brief}
+          setBrief={setBrief}
+          style={style}
+          setStyle={setStyle}
+          submit={() => act(generate)}
+          busy={busy}
+          error={error}
+          close={() => setShowBrief(false)}
+        />
+      )}
       <fieldset
         disabled={busy}
         className={busy ? "workspace busy" : "workspace"}
       >
-        <div className="wrap">
-          <div className="intro">
-            <div>
-              <p className="eyebrow">Software architecture lab</p>
-              <h1>
-                Architecture time machine<span>.</span>
-              </h1>
-              <p className="subtitle">
-                Explore how a design behaves as demand and infrastructure
-                change.
-              </p>
+        <div className="console-shell">
+          <aside className="rail">
+            <div className="rail-top">
+              <div className="rail-label">Workspace</div>
+              <nav aria-label="Workbench views">
+                {tabs.map((t, i) => {
+                  const Icon = navIcons[i];
+                  return (
+                    <div key={t}>
+                      {i === 3 && (
+                        <div className="rail-label secondary-label">
+                          Engineering
+                        </div>
+                      )}
+                      <button
+                        className={tab === t ? "chosen" : ""}
+                        aria-current={tab === t ? "page" : undefined}
+                        onClick={() => go(t)}
+                      >
+                        <Icon size={17} />
+                        <span>{t}</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </nav>
             </div>
-            <button
-              className="primary"
-              onClick={() => setShowBrief(!showBrief)}
-            >
-              <Sparkles size={16} /> Design from a brief
-            </button>
-          </div>
-          {showBrief && (
-            <section className="sheet brief">
-              <h2>Business requirements</h2>
-              <label>
-                Business brief
-                <textarea
-                  value={brief}
-                  maxLength={6000}
-                  onChange={(e) => setBrief(e.target.value)}
-                />
-              </label>
-              <div className="actions">
-                <select
-                  aria-label="Architecture style"
-                  value={style}
-                  onChange={(e) => setStyle(e.target.value as Style)}
-                >
-                  {["microservices", "monolith", "event-driven"].map((x) => (
-                    <option key={x}>{x}</option>
+            {board && (
+              <details className="display-opts">
+                <summary>
+                  <SlidersHorizontal size={15} />
+                  Graph display
+                </summary>
+                <div>
+                  {displayOptions.map(({ label, checked, set }) => (
+                    <label key={label}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => set(e.target.checked)}
+                      />
+                      {label}
+                    </label>
                   ))}
-                </select>
-                <button
-                  className="primary"
-                  disabled={brief.trim().length < 12}
-                  onClick={() => act(generate)}
-                >
-                  Generate and review
+                </div>
+              </details>
+            )}
+          </aside>
+          <div className="desk">
+            <div aria-live="polite">
+              {busy && !showBrief && (
+                <div className="note">Processing workspace request…</div>
+              )}
+              {status && (
+                <div className="note">
+                  <Check size={14} />
+                  {status}
+                  <button
+                    className="icon-btn right"
+                    aria-label="Dismiss message"
+                    onClick={() => setStatus("")}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+              {error && !showBrief && (
+                <div role="alert" className="error">
+                  {error}
+                </div>
+              )}
+            </div>
+            {run?.status === "awaiting_approval" && (
+              <div className="gate">
+                <div>
+                  <b>Human approval required</b>
+                  <p>Inspect the initial review before saving version 1.</p>
+                </div>
+                <button onClick={() => act(save)}>
+                  <Check size={15} /> Approve design
                 </button>
               </div>
-            </section>
-          )}
-          <nav className="tabs" aria-label="Workbench views">
-            {tabs.map((t, i) => {
-              const Icon = [Clock3, ShieldCheck, GitBranch][i];
-              return (
-                <button
-                  key={t}
-                  className={tab === t ? "chosen" : ""}
-                  aria-current={tab === t ? "page" : undefined}
-                  onClick={() => setTab(t)}
-                >
-                  <Icon size={16} /> {t}
+            )}
+            {run && ["ready", "failed", "running"].includes(run.status) && (
+              <div className="gate">
+                <span>Workflow · {run.status}</span>
+                <button onClick={() => act(() => execute(run.id))}>
+                  Resume review
                 </button>
-              );
-            })}
-            <span className="workspace-state">
-              {dirty
-                ? "Unsaved edits"
-                : version
-                  ? "Saved · v" + version
-                  : run?.status === "awaiting_approval"
-                    ? "Awaiting approval"
-                    : "Sample workspace"}
-            </span>
-          </nav>
-          <div aria-live="polite">
-            {busy && (
-              <div className="note">
-                Processing experiment or workspace request…
               </div>
             )}
-            {status && <div className="note">{status}</div>}
-            {error && (
-              <div role="alert" className="error">
-                {error}
-              </div>
-            )}
-          </div>
-          {run?.status === "awaiting_approval" && (
-            <div className="gate">
-              <div>
-                <b>Human approval required</b>
-                <p>Inspect the initial review before saving version 1.</p>
-              </div>
-              <button onClick={() => act(save)}>
-                <Check size={15} /> Approve design
-              </button>
-            </div>
-          )}
-          {run && ["ready", "failed", "running"].includes(run.status) && (
-            <div className="gate">
-              <span>Workflow · {run.status}</span>
-              <button onClick={() => act(() => execute(run.id))}>
-                Resume review
-              </button>
-            </div>
-          )}
-          {tab === "Time machine" && (
-            <div className="lab-grid">
-              <div>
-                <section className="sheet topology">
-                  <div className="section-title">
-                    <div className="title-icon">
-                      <Layers3 size={20} />
+
+            {board ? (
+              <div className={"graph-row" + (panelOpen ? "" : " panel-hidden")}>
+                <section className="graph-panel">
+                  <div className="graph-heading">
+                    <div className="graph-heading-text">
+                      <p className="eyebrow">
+                        <i />
+                        Dependency map
+                      </p>
+                      <h1>{arch.name}</h1>
                     </div>
-                    <div>
-                      <p className="eyebrow">Architecture topology</p>
-                      <h2>{arch.name}</h2>
+                    <div className="graph-buttons">
+                      <button
+                        disabled={!canEdit}
+                        title="Edit graph"
+                        onClick={toggleEdit}
+                      >
+                        <Pencil size={14} />
+                        {edit ? "Finish editing" : "Edit graph"}
+                      </button>
+                      {!panelOpen && (
+                        <button
+                          className="icon-btn"
+                          aria-label="Open analysis panel"
+                          onClick={() => setPanelOpen(true)}
+                        >
+                          <PanelRightOpen size={17} />
+                        </button>
+                      )}
                     </div>
-                    <button
-                      disabled={!canEdit}
-                      className="right"
-                      onClick={() => setEdit(!edit)}
-                    >
-                      <Pencil size={13} />
-                      {edit ? "Finish editing" : "Edit graph"}
-                    </button>
                   </div>
                   <Topology
                     key={(run?.id ?? "sample") + "-" + version}
                     arch={arch}
                     selected={selected}
-                    select={select}
+                    select={(id) => {
+                      select(id);
+                      setPanel("component");
+                      setPanelOpen(true);
+                    }}
                     change={(a) => {
                       if (canEdit) change(a);
                     }}
-                    result={result}
                     editable={edit && canEdit}
+                    result={result}
+                    showSpecs={showSpecs}
+                    showProtocols={showProtocols}
+                    showMap={showMap}
                   />
-                  <div className="canvas-caption">
+                  <div className="graph-strip">
                     <span>
-                      <i className="dot" /> {arch.style} ·{" "}
-                      {arch.components.length} components
+                      <i />
+                      {arch.style}
                     </span>
                     <span>
-                      {result && Object.keys(result.failure_paths).length
-                        ? "Orange = observed failure path"
-                        : "Arrows follow request flow"}
+                      {arch.components.length} components <em>/</em>{" "}
+                      {arch.edges.length} dependencies
                     </span>
+                    <label className="quick-horizon">
+                      <Clock3 size={12} />
+                      <select
+                        aria-label="Simulation horizon"
+                        disabled={!points.length}
+                        value={index}
+                        onChange={(e) => setIndex(Number(e.target.value))}
+                      >
+                        {[0, 6, 12, 24].map((m, i) => (
+                          <option key={m} value={i}>
+                            {m ? "Month " + m : "Today"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </section>
-                <Timeline
-                  points={points}
-                  index={index}
-                  setIndex={setIndex}
-                  alternative={pair?.right}
-                />
-                <section className="sheet">
-                  <div className="section-title">
-                    <Activity size={18} />
-                    <h2>Failure propagation</h2>
-                  </div>
-                  {result ? (
-                    <>
-                      <p>
-                        {result.failed} foreground failures ·{" "}
-                        {result.background_failed} background failures ·{" "}
-                        {result.requests} offered requests
-                      </p>
-                      {Object.entries(result.failure_paths).map(([p, n]) => (
-                        <p className="path" key={p}>
-                          {p} <b>× {n}</b>
-                        </p>
-                      ))}
-                      <details>
-                        <summary>Model assumptions</summary>
-                        <ul>
-                          {result.assumptions.map((s) => (
-                            <li key={s}>{s}</li>
-                          ))}
-                        </ul>
-                      </details>
-                    </>
-                  ) : (
-                    <p className="empty">
-                      Run the current graph to inspect failure paths.
-                    </p>
-                  )}
-                </section>
-              </div>
-              <aside>
-                {edit && canEdit && (
-                  <Inspector
-                    arch={arch}
-                    id={selected}
-                    select={select}
-                    change={change}
-                  />
+                {panelOpen && (
+                  <aside className="analysis-panel" id="analysis">
+                    <div className="panel-tabs">
+                      <button
+                        className={!edit && panel === "impact" ? "active" : ""}
+                        onClick={() => {
+                          setEdit(false);
+                          setPanel("impact");
+                        }}
+                      >
+                        Analysis
+                      </button>
+                      <button
+                        className={
+                          edit || panel === "component" ? "active" : ""
+                        }
+                        onClick={() => setPanel("component")}
+                      >
+                        Component
+                      </button>
+                      <button
+                        aria-label="Collapse analysis panel"
+                        title="Collapse panel"
+                        className="icon-btn right"
+                        onClick={() => {
+                          setPanelOpen(false);
+                          setEdit(false);
+                        }}
+                      >
+                        <PanelRightClose size={15} />
+                      </button>
+                    </div>
+                    {edit && canEdit ? (
+                      <div className="editor-panel">
+                        <Inspector
+                          arch={arch}
+                          id={selected}
+                          select={select}
+                          change={change}
+                        />
+                        {dirty && version > 0 && (
+                          <button className="primary" onClick={() => act(save)}>
+                            <Save size={15} />
+                            Save new version
+                          </button>
+                        )}
+                      </div>
+                    ) : panel === "component" ? (
+                      <ComponentDetail part={part} result={result} />
+                    ) : (
+                      <Impact
+                        arch={arch}
+                        result={result}
+                        points={points}
+                        month={[0, 6, 12, 24][index]}
+                        canDownload={!!version && !dirty}
+                        download={() => act(report)}
+                      />
+                    )}
+                  </aside>
                 )}
+              </div>
+            ) : (
+              <div className="document-view">
+                <div className="view-heading">
+                  <p className="eyebrow">Engineering</p>
+                  <h1>{tab}</h1>
+                </div>
+                {tab === "Design review" && (
+                  <>
+                    <Review run={run} />
+                    <section className="sheet">
+                      <h2>API and database specifications</h2>
+                      {arch.endpoints.map((e) => (
+                        <article key={e.method + e.path}>
+                          <code>
+                            {e.method} {e.path}
+                          </code>
+                          <p>
+                            {e.purpose} · {e.request} → {e.response}
+                          </p>
+                        </article>
+                      ))}
+                      {arch.tables.map((t) => (
+                        <article key={t.name}>
+                          <b>{t.name}</b>
+                          <p>{t.columns.join(" · ")}</p>
+                        </article>
+                      ))}
+                    </section>
+                  </>
+                )}
+                {tab === "Versions" && (
+                  <>
+                    <section className="sheet controls">
+                      <h2>Saved workspaces</h2>
+                      <label>
+                        Workspace
+                        <select
+                          value={run?.id ?? ""}
+                          onChange={(e) =>
+                            act(() => load(e.target.value).then(() => {}))
+                          }
+                        >
+                          <option value="" disabled>
+                            Select a run
+                          </option>
+                          {recent.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {new Date(r.created * 1000).toLocaleString()} ·{" "}
+                              {r.status} · {r.id.slice(0, 8)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {run && run.head > 0 && (
+                        <label>
+                          Revision
+                          <select
+                            value={version}
+                            onChange={(e) =>
+                              act(() =>
+                                load(run.id, Number(e.target.value)).then(
+                                  () => {},
+                                ),
+                              )
+                            }
+                          >
+                            {Array.from({ length: run.head }, (_, i) => (
+                              <option value={i + 1} key={i}>
+                                Version {i + 1}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </section>
+                    {run && version > 0 && (
+                      <section className="sheet controls">
+                        <h2>Compare with another architecture</h2>
+                        <p>
+                          Apply the current scenario to both saved designs. The
+                          current workspace is the teal series.
+                        </p>
+                        <label>
+                          Alternative workspace
+                          <select
+                            value={otherRun}
+                            onChange={(e) => {
+                              setOtherRun(e.target.value);
+                              setOther(1);
+                              setPair(undefined);
+                            }}
+                          >
+                            {recent
+                              .filter((r) => r.head > 0)
+                              .map((r) => (
+                                <option value={r.id} key={r.id}>
+                                  {r.id.slice(0, 8)} · {r.head} versions
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+                        <label>
+                          Alternative revision
+                          <select
+                            value={other}
+                            onChange={(e) => {
+                              setOther(Number(e.target.value));
+                              setPair(undefined);
+                            }}
+                          >
+                            {Array.from(
+                              {
+                                length:
+                                  recent.find((r) => r.id === otherRun)?.head ??
+                                  run.head,
+                              },
+                              (_, i) => (
+                                <option key={i} value={i + 1}>
+                                  Version {i + 1}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                        </label>
+                        <button
+                          className="primary"
+                          disabled={dirty}
+                          onClick={() =>
+                            act(async () => {
+                              const p = await api<Pair>(
+                                "runs/" + run.id + "/compare",
+                                {
+                                  left: version,
+                                  right: other,
+                                  right_run: otherRun,
+                                  scenario,
+                                },
+                              );
+                              setPair(p);
+                              setPoints(p.left);
+                            })
+                          }
+                        >
+                          Compare versions
+                        </button>
+                        {pair && (
+                          <>
+                            <Timeline
+                              points={pair.left}
+                              alternative={pair.right}
+                              index={index}
+                              setIndex={setIndex}
+                            />
+                            <details open>
+                              <summary>Architecture changes</summary>
+                              <pre>{JSON.stringify(pair.diff, null, 2)}</pre>
+                            </details>
+                          </>
+                        )}
+                      </section>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {board && (
+          <>
+            <Layers arch={arch} result={result} />
+            <section className="experiments" id="experiments">
+              <div className="experiment-title">
+                <span className="layer-icon">
+                  <FlaskConical size={19} />
+                </span>
+                <div>
+                  <p className="eyebrow">Scenario laboratory</p>
+                  <h2>{scenarioNames[scenario.kind]}</h2>
+                </div>
+                <span className="experiment-month">
+                  Horizon · {[0, 6, 12, 24][index]} months
+                </span>
+              </div>
+              <div className="experiments-grid">
                 <ScenarioForm
                   scenario={scenario}
                   change={(s) => {
@@ -436,222 +746,57 @@ export default function Lab() {
                   busy={busy}
                   run={() => act(experiment)}
                 />
-                <section className="risk">
-                  <p className="eyebrow">At the selected horizon</p>
-                  <h2>Risk assessment</h2>
-                  {result ? (
-                    <>
-                      <div>
-                        <small>Largest mean queue delay</small>
-                        <b>{result.bottleneck ?? "No queuing"}</b>
-                      </div>
-                      <div>
-                        <small>Single-replica dependencies</small>
-                        <b>{result.single_points.join(", ") || "None"}</b>
-                      </div>
-                      {scenario.kind === "budget-cap" && (
-                        <div>
-                          <small>Budget target</small>
-                          <b>
-                            {result.budget_met
-                              ? "Within cap"
-                              : "Minimum footprint exceeds cap"}
-                          </b>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <p>Run an experiment to assess this design.</p>
-                  )}
-                </section>
-                <section className="sheet">
-                  <h2>Engineering report</h2>
-                  <p className="small muted">
-                    Includes the saved graph, scenario, results, assumptions and
-                    original review evidence.
-                  </p>
-                  <button
-                    disabled={!version || dirty}
-                    onClick={() => act(report)}
-                  >
-                    <Download size={15} /> Download report
-                  </button>
-                  {!version && (
-                    <small className="footnote">
-                      Generate and approve a design to export.
-                    </small>
-                  )}
-                </section>
-                {dirty && version > 0 && (
-                  <button className="primary" onClick={() => act(save)}>
-                    <Save size={15} /> Save new version
-                  </button>
-                )}
-              </aside>
-            </div>
-          )}
-          {tab === "Design review" && (
-            <>
-              <Review run={run} />
-              <section className="sheet">
-                <h2>API and database specifications</h2>
-                {arch.endpoints.map((e) => (
-                  <article key={e.method + e.path}>
-                    <code>
-                      {e.method} {e.path}
-                    </code>
-                    <p>
-                      {e.purpose} · {e.request} → {e.response}
-                    </p>
-                  </article>
-                ))}
-                {arch.tables.map((t) => (
-                  <article key={t.name}>
-                    <b>{t.name}</b>
-                    <p>{t.columns.join(" · ")}</p>
-                  </article>
-                ))}
-              </section>
-            </>
-          )}
-          {tab === "Versions" && (
-            <>
-              <section className="sheet controls">
-                <h2>Saved workspaces</h2>
-                <label>
-                  Workspace
-                  <select
-                    value={run?.id ?? ""}
-                    onChange={(e) =>
-                      act(() => load(e.target.value).then(() => {}))
-                    }
-                  >
-                    <option value="" disabled>
-                      Select a run
-                    </option>
-                    {recent.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {new Date(r.created * 1000).toLocaleString()} ·{" "}
-                        {r.status} · {r.id.slice(0, 8)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {run && run.head > 0 && (
-                  <label>
-                    Revision
-                    <select
-                      value={version}
-                      onChange={(e) =>
-                        act(() =>
-                          load(run.id, Number(e.target.value)).then(() => {}),
-                        )
-                      }
-                    >
-                      {Array.from({ length: run.head }, (_, i) => (
-                        <option value={i + 1} key={i}>
-                          Version {i + 1}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-              </section>
-              {run && version > 0 && (
-                <section className="sheet controls">
-                  <h2>Compare with another architecture</h2>
+                <Timeline
+                  points={points}
+                  index={index}
+                  setIndex={setIndex}
+                  alternative={pair?.right}
+                />
+              </div>
+              {result && (
+                <details className="sheet assumptions">
+                  <summary>Failure paths and model assumptions</summary>
                   <p>
-                    Apply the current scenario to both saved designs. The
-                    current workspace is the green series.
+                    {result.failed} foreground failures ·{" "}
+                    {result.background_failed} background failures
                   </p>
-                  <label>
-                    Alternative workspace
-                    <select
-                      value={otherRun}
-                      onChange={(e) => {
-                        setOtherRun(e.target.value);
-                        setOther(1);
-                        setPair(undefined);
-                      }}
-                    >
-                      {recent
-                        .filter((r) => r.head > 0)
-                        .map((r) => (
-                          <option value={r.id} key={r.id}>
-                            {r.id.slice(0, 8)} · {r.head} versions
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <label>
-                    Alternative revision
-                    <select
-                      value={other}
-                      onChange={(e) => {
-                        setOther(Number(e.target.value));
-                        setPair(undefined);
-                      }}
-                    >
-                      {Array.from(
-                        {
-                          length:
-                            recent.find((r) => r.id === otherRun)?.head ??
-                            run.head,
-                        },
-                        (_, i) => (
-                          <option key={i} value={i + 1}>
-                            Version {i + 1}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
-                  <button
-                    className="primary"
-                    disabled={dirty}
-                    onClick={() =>
-                      act(async () => {
-                        const p = await api<Pair>(
-                          "runs/" + run.id + "/compare",
-                          {
-                            left: version,
-                            right: other,
-                            right_run: otherRun,
-                            scenario,
-                          },
-                        );
-                        setPair(p);
-                        setPoints(p.left);
-                      })
-                    }
-                  >
-                    Compare versions
-                  </button>
-                  {pair && (
-                    <>
-                      <Timeline
-                        points={pair.left}
-                        alternative={pair.right}
-                        index={index}
-                        setIndex={setIndex}
-                      />
-                      <details open>
-                        <summary>Architecture changes</summary>
-                        <pre>{JSON.stringify(pair.diff, null, 2)}</pre>
-                      </details>
-                    </>
+                  {Object.entries(result.failure_paths).map(([p, n]) => (
+                    <p key={p} className="path">
+                      {p} · {n}
+                    </p>
+                  ))}
+                  {scenario.kind === "budget-cap" && (
+                    <p>
+                      {result.budget_met
+                        ? "Within budget"
+                        : "Minimum footprint exceeds the budget"}
+                    </p>
                   )}
-                </section>
+                  <ul>
+                    {result.assumptions.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </details>
               )}
-            </>
-          )}
-          <footer>
-            <span>FutureStack AI</span>
-            <span>
-              Deterministic simulations · Illustrative workloads and costs
-            </span>
-          </footer>
-        </div>
+              {dirty && version > 0 && !edit && (
+                <button className="primary" onClick={() => act(save)}>
+                  <Save size={15} />
+                  Save new version
+                </button>
+              )}
+            </section>
+          </>
+        )}
+        <footer>
+          <span>
+            <span className="footer-dot" />
+            {versionLabel}
+          </span>
+          <span>
+            Deterministic simulation <em>/</em> Illustrative workloads and costs
+          </span>
+        </footer>
       </fieldset>
     </main>
   );

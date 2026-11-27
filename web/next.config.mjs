@@ -1,1 +1,5 @@
-export default { output: "standalone", poweredByHeader: false };
+export default {
+  output: "standalone",
+  poweredByHeader: false,
+  devIndicators: false,
+};

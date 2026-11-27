@@ -10,7 +10,7 @@ export const defaultScenario: Scenario = {
   horizon: 12,
   budget_usd: 200,
 };
-const kinds: Record<string, string> = {
+export const scenarioNames: Record<string, string> = {
   "traffic-growth": "Traffic growth",
   "database-failure": "Database failure",
   "service-outage": "Service outage",
@@ -47,7 +47,7 @@ export function ScenarioForm({
             change({ ...s, kind: e.target.value, target: undefined })
           }
         >
-          {Object.entries(kinds).map(([v, n]) => (
+          {Object.entries(scenarioNames).map(([v, n]) => (
             <option value={v} key={v}>
               {n}
             </option>
@@ -167,14 +167,14 @@ export function Timeline({
                   x2="600"
                   y1={h}
                   y2={h}
-                  stroke="#d8e4ce"
+                  stroke="#283447"
                   strokeDasharray="4 5"
                 />
               ))}
               <path
                 d={line(points)}
                 fill="none"
-                stroke="#217e58"
+                stroke="#44c7c2"
                 strokeWidth="3"
                 vectorEffect="non-scaling-stroke"
               />
@@ -182,7 +182,7 @@ export function Timeline({
                 <path
                   d={line(alternative)}
                   fill="none"
-                  stroke="#b45c36"
+                  stroke="#ff926f"
                   strokeWidth="3"
                   strokeDasharray="7 4"
                   vectorEffect="non-scaling-stroke"
@@ -193,7 +193,7 @@ export function Timeline({
                 x2={x(index)}
                 y1="0"
                 y2="90"
-                stroke="#5e7565"
+                stroke="#627488"
                 strokeDasharray="3 3"
               />
               {points.map(
@@ -204,7 +204,7 @@ export function Timeline({
                       cx={x(i)}
                       cy={y(p)}
                       r={i === index ? 5 : 3}
-                      fill="#217e58"
+                      fill="#44c7c2"
                     >
                       <title>
                         {p.month} months · {p.result.p95_ms ?? "unavailable"} ms

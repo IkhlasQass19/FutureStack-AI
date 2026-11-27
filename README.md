@@ -3,7 +3,7 @@
 
 Turn a business brief into a reviewable system design, edit its dependency graph, and compare how two versions behave under the same hypothetical workload. The lab combines structured generation, cited specialist reviews, graph analysis and deterministic discrete-event simulation.
 
-![The architecture workbench showing the ticketing request path, scenario controls and four time horizons](docs/workbench.png)
+![The architecture workbench showing the ticketing dependency graph, simulated failure path and impact analysis](docs/workbench.png)
 
 ### Try the local demo
 
@@ -29,7 +29,7 @@ docker compose up --build -d --wait
 ### Reproduce the ticketing experiment
 
 1. Open **Design from a brief**. Generate the default microservices design. Inspect its requirements, original assumptions, three cited findings, and six stage traces.
-2. **Approve design** to create version 1. Run **Traffic growth** with a base of 24 requests/s over 12 seconds. Select **Month 24**.
+2. **Approve design** to create version 1. Open **Time machine** and run **Traffic growth** with a base of 24 requests/s over 12 seconds. Select **Month 24**.
 3. Choose **Edit graph**. In the inspector select **Primary database**, change replicas from 1 to 3, and save version 2. In **Versions**, compare the current design with version 1 at the same horizon.
 4. Switch to **Database failure** to see the component-wide outage propagate along the request path. Download the engineering report for the saved version and selected horizon.
 
