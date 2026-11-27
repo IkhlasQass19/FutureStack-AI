@@ -1,0 +1,252 @@
+[
+  {
+    "id": "venue",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false
+    ],
+    "coverage": 0.5,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 2.82
+  },
+  {
+    "id": "venue",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false
+    ],
+    "coverage": 0.5,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 30.46
+  },
+  {
+    "id": "retail",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 0.32
+  },
+  {
+    "id": "retail",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 17.04
+  },
+  {
+    "id": "devices",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 0.4
+  },
+  {
+    "id": "devices",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 16.62
+  },
+  {
+    "id": "clinic",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 0.35
+  },
+  {
+    "id": "clinic",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      false,
+      false
+    ],
+    "coverage": 0.333,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 16.08
+  },
+  {
+    "id": "media",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      true,
+      true
+    ],
+    "coverage": 1.0,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 0.41
+  },
+  {
+    "id": "media",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      true,
+      true,
+      true
+    ],
+    "coverage": 1.0,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 16.03
+  },
+  {
+    "id": "library",
+    "mode": "single-call",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      false,
+      false,
+      false
+    ],
+    "coverage": 0.0,
+    "consistency": 1.0,
+    "advice_count": 0,
+    "flagged_unsupported": 0,
+    "unsupported_rate": null,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 0.26
+  },
+  {
+    "id": "library",
+    "mode": "reviewed",
+    "provider": "demo",
+    "model": "rule-based demo",
+    "capability_hits": [
+      false,
+      false,
+      false
+    ],
+    "coverage": 0.0,
+    "consistency": 1.0,
+    "advice_count": 3,
+    "flagged_unsupported": 0,
+    "unsupported_rate": 0.0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "status": "ok",
+    "latency_ms": 18.07
+  }
+]

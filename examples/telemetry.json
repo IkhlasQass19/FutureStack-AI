@@ -1,0 +1,132 @@
+{
+  "name": "Telemetry platform",
+  "style": "event-driven",
+  "components": [
+    {
+      "id": "edge",
+      "name": "Edge gateway",
+      "kind": "gateway",
+      "technology": "NGINX",
+      "rationale": "One ingress for request routing and TLS termination.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 8,
+      "service_ms": 4,
+      "monthly_usd": 20.0,
+      "x": 0.0,
+      "y": 50.0
+    },
+    {
+      "id": "api",
+      "name": "Telemetry API",
+      "kind": "service",
+      "technology": "FastAPI",
+      "rationale": "Owns the reading write contract and input validation.",
+      "requirements": [
+        "r1",
+        "r2"
+      ],
+      "replicas": 2,
+      "slots": 2,
+      "service_ms": 28,
+      "monthly_usd": 42.0,
+      "x": 230.0,
+      "y": 50.0
+    },
+    {
+      "id": "store",
+      "name": "Primary database",
+      "kind": "database",
+      "technology": "PostgreSQL",
+      "rationale": "Transactions preserve the reading lifecycle.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 55,
+      "monthly_usd": 80.0,
+      "x": 460.0,
+      "y": 50.0
+    },
+    {
+      "id": "events",
+      "name": "Event broker",
+      "kind": "queue",
+      "technology": "RabbitMQ",
+      "rationale": "Buffers acknowledged work between producer and consumer.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 8,
+      "monthly_usd": 25.0,
+      "x": 460.0,
+      "y": 195.0
+    },
+    {
+      "id": "worker",
+      "name": "Event consumer",
+      "kind": "worker",
+      "technology": "Python worker",
+      "rationale": "Processes committed domain events outside the response path.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 70,
+      "monthly_usd": 35.0,
+      "x": 690.0,
+      "y": 195.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "edge",
+      "target": "api",
+      "mode": "sync",
+      "protocol": "HTTPS"
+    },
+    {
+      "source": "api",
+      "target": "store",
+      "mode": "sync",
+      "protocol": "SQL/TLS"
+    },
+    {
+      "source": "api",
+      "target": "events",
+      "mode": "sync",
+      "protocol": "AMQP"
+    },
+    {
+      "source": "events",
+      "target": "worker",
+      "mode": "async",
+      "protocol": "AMQP"
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/readings",
+      "purpose": "Create a reading",
+      "request": "{client_id, reading_data}",
+      "response": "{id, status}"
+    },
+    {
+      "method": "GET",
+      "path": "/readings/{id}",
+      "purpose": "Read a reading",
+      "request": "Path parameter id",
+      "response": "{id, status, created_at}"
+    }
+  ],
+  "tables": [
+    {
+      "name": "readings",
+      "columns": [
+        "id UUID PRIMARY KEY",
+        "client_id TEXT",
+        "status TEXT",
+        "created_at TIMESTAMPTZ"
+      ]
+    }
+  ]
+}

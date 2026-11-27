@@ -1,0 +1,17 @@
+FROM node:22-bookworm-slim AS build
+ENV NEXT_TELEMETRY_DISABLED=1
+WORKDIR /app/web
+COPY web/package*.json ./
+RUN npm ci
+COPY web ./
+COPY examples /app/examples
+RUN npm run build
+
+FROM node:22-bookworm-slim
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+WORKDIR /app
+COPY --from=build --chown=node:node /app/web/.next/standalone ./
+COPY --from=build --chown=node:node /app/web/.next/static ./.next/static
+USER node
+EXPOSE 3000
+CMD ["node","server.js"]

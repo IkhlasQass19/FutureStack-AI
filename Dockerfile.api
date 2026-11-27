@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+WORKDIR /app
+COPY pyproject.toml constraints.txt ./
+COPY backend/futurestack backend/futurestack
+RUN pip install --no-cache-dir -c constraints.txt '.[oci]' && useradd --create-home --uid 10001 lab
+COPY alembic.ini ./
+COPY migrations migrations
+USER lab
+EXPOSE 8000
+CMD ["uvicorn","futurestack.api:app","--host","0.0.0.0","--port","8000"]

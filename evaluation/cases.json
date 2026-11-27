@@ -1,0 +1,132 @@
+[
+  {
+    "id": "venue",
+    "style": "microservices",
+    "text": "Reserve concert tickets. Issue emailed receipts. Keep checkout p95 below 200 ms.",
+    "capabilities": [
+      [
+        "reserv",
+        "ticket"
+      ],
+      [
+        "email",
+        "receipt"
+      ]
+    ],
+    "kinds": [
+      "gateway",
+      "service",
+      "database"
+    ]
+  },
+  {
+    "id": "retail",
+    "style": "monolith",
+    "text": "Create shop orders. Process refunds. Track packages for customers.",
+    "capabilities": [
+      [
+        "order"
+      ],
+      [
+        "refund"
+      ],
+      [
+        "ship",
+        "package"
+      ]
+    ],
+    "kinds": [
+      "gateway",
+      "service",
+      "database"
+    ]
+  },
+  {
+    "id": "devices",
+    "style": "event-driven",
+    "text": "Ingest sensor readings. Send an alert when a device overheats. Retain readings for 30 days.",
+    "capabilities": [
+      [
+        "reading",
+        "sensor"
+      ],
+      [
+        "alert"
+      ],
+      [
+        "retention",
+        "retain"
+      ]
+    ],
+    "kinds": [
+      "queue",
+      "worker",
+      "database"
+    ]
+  },
+  {
+    "id": "clinic",
+    "style": "microservices",
+    "text": "Book clinic appointments. Audit all access to patient records. Allow patients to cancel visits.",
+    "capabilities": [
+      [
+        "appointment",
+        "booking"
+      ],
+      [
+        "audit"
+      ],
+      [
+        "cancel"
+      ]
+    ],
+    "kinds": [
+      "gateway",
+      "service",
+      "database"
+    ]
+  },
+  {
+    "id": "media",
+    "style": "event-driven",
+    "text": "Accept video assets for transcoding. Publish a completion event. Let users retrieve processing status.",
+    "capabilities": [
+      [
+        "asset",
+        "video"
+      ],
+      [
+        "event"
+      ],
+      [
+        "status"
+      ]
+    ],
+    "kinds": [
+      "worker",
+      "queue",
+      "database"
+    ]
+  },
+  {
+    "id": "library",
+    "style": "monolith",
+    "text": "Lend books to members. Calculate overdue fees. Let members renew a loan.",
+    "capabilities": [
+      [
+        "book",
+        "lend"
+      ],
+      [
+        "fee"
+      ],
+      [
+        "renew"
+      ]
+    ],
+    "kinds": [
+      "gateway",
+      "database"
+    ]
+  }
+]

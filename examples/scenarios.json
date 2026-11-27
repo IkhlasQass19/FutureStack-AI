@@ -1,0 +1,50 @@
+[
+  {
+    "kind": "baseline",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  },
+  {
+    "kind": "traffic-growth",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  },
+  {
+    "kind": "database-failure",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  },
+  {
+    "kind": "service-outage",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  },
+  {
+    "kind": "network-latency",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  },
+  {
+    "kind": "budget-cap",
+    "rps": 24,
+    "duration_s": 12,
+    "horizon": 12,
+    "target": null,
+    "budget_usd": 200
+  }
+]

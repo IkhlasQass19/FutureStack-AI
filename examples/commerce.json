@@ -1,0 +1,92 @@
+{
+  "name": "Commerce platform",
+  "style": "monolith",
+  "components": [
+    {
+      "id": "edge",
+      "name": "Edge gateway",
+      "kind": "gateway",
+      "technology": "NGINX",
+      "rationale": "One ingress for request routing and TLS termination.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 8,
+      "service_ms": 4,
+      "monthly_usd": 20.0,
+      "x": 0.0,
+      "y": 50.0
+    },
+    {
+      "id": "api",
+      "name": "Commerce application",
+      "kind": "service",
+      "technology": "FastAPI",
+      "rationale": "Owns the order write contract and input validation.",
+      "requirements": [
+        "r1",
+        "r2"
+      ],
+      "replicas": 2,
+      "slots": 2,
+      "service_ms": 28,
+      "monthly_usd": 42.0,
+      "x": 230.0,
+      "y": 50.0
+    },
+    {
+      "id": "store",
+      "name": "Primary database",
+      "kind": "database",
+      "technology": "PostgreSQL",
+      "rationale": "Transactions preserve the order lifecycle.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 55,
+      "monthly_usd": 80.0,
+      "x": 460.0,
+      "y": 50.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "edge",
+      "target": "api",
+      "mode": "sync",
+      "protocol": "HTTPS"
+    },
+    {
+      "source": "api",
+      "target": "store",
+      "mode": "sync",
+      "protocol": "SQL/TLS"
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "purpose": "Create a order",
+      "request": "{client_id, order_data}",
+      "response": "{id, status}"
+    },
+    {
+      "method": "GET",
+      "path": "/orders/{id}",
+      "purpose": "Read a order",
+      "request": "Path parameter id",
+      "response": "{id, status, created_at}"
+    }
+  ],
+  "tables": [
+    {
+      "name": "orders",
+      "columns": [
+        "id UUID PRIMARY KEY",
+        "client_id TEXT",
+        "status TEXT",
+        "created_at TIMESTAMPTZ"
+      ]
+    }
+  ]
+}

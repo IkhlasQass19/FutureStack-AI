@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=72"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "futurestack-ai"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+ "fastapi>=0.118,<1", "uvicorn>=0.34,<1", "pydantic>=2.11,<3", "pydantic-settings>=2.7,<3",
+ "networkx>=3.4,<4", "simpy>=4.1,<5", "sqlalchemy>=2.0,<2.1", "alembic>=1.14,<2",
+ "pgvector>=0.4,<1", "psycopg[binary]>=3.2,<4", "langgraph>=1.0,<2",
+ "httpx>=0.28,<1", "mcp>=1.12,<2", "opentelemetry-sdk>=1.31,<2",
+ "opentelemetry-exporter-otlp-proto-http>=1.31,<2"
+]
+[project.optional-dependencies]
+oci = ["oci>=2.155,<3"]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8"]
+[project.scripts]
+futurestack-mcp = "futurestack.mcp_server:main"
+futurestack-ingest = "futurestack.evidence:main"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+include = ["futurestack*"]
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend", "."]

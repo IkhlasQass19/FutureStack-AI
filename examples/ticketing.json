@@ -1,0 +1,111 @@
+{
+  "name": "Ticketing platform",
+  "style": "microservices",
+  "components": [
+    {
+      "id": "edge",
+      "name": "Edge gateway",
+      "kind": "gateway",
+      "technology": "NGINX",
+      "rationale": "One ingress for request routing and TLS termination.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 8,
+      "service_ms": 4,
+      "monthly_usd": 20.0,
+      "x": 0.0,
+      "y": 50.0
+    },
+    {
+      "id": "api",
+      "name": "Ticketing API",
+      "kind": "service",
+      "technology": "FastAPI",
+      "rationale": "Owns the reservation write contract and input validation.",
+      "requirements": [
+        "r1"
+      ],
+      "replicas": 2,
+      "slots": 2,
+      "service_ms": 28,
+      "monthly_usd": 42.0,
+      "x": 230.0,
+      "y": 50.0
+    },
+    {
+      "id": "store",
+      "name": "Primary database",
+      "kind": "database",
+      "technology": "PostgreSQL",
+      "rationale": "Transactions preserve the reservation lifecycle.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 55,
+      "monthly_usd": 80.0,
+      "x": 690.0,
+      "y": 50.0
+    },
+    {
+      "id": "ledger",
+      "name": "Ticketing ledger",
+      "kind": "service",
+      "technology": "Python / HTTP",
+      "rationale": "Isolates transactional state behind a single owner.",
+      "requirements": [],
+      "replicas": 1,
+      "slots": 2,
+      "service_ms": 20,
+      "monthly_usd": 36.0,
+      "x": 460.0,
+      "y": 50.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "edge",
+      "target": "api",
+      "mode": "sync",
+      "protocol": "HTTPS"
+    },
+    {
+      "source": "api",
+      "target": "ledger",
+      "mode": "sync",
+      "protocol": "HTTPS"
+    },
+    {
+      "source": "ledger",
+      "target": "store",
+      "mode": "sync",
+      "protocol": "SQL/TLS"
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/reservations",
+      "purpose": "Create a reservation",
+      "request": "{client_id, reservation_data}",
+      "response": "{id, status}"
+    },
+    {
+      "method": "GET",
+      "path": "/reservations/{id}",
+      "purpose": "Read a reservation",
+      "request": "Path parameter id",
+      "response": "{id, status, created_at}"
+    }
+  ],
+  "tables": [
+    {
+      "name": "reservations",
+      "columns": [
+        "id UUID PRIMARY KEY",
+        "client_id TEXT",
+        "status TEXT",
+        "created_at TIMESTAMPTZ"
+      ]
+    }
+  ]
+}
